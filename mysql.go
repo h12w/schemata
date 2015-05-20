@@ -41,10 +41,10 @@ func (d Mysql) schema(name, table string) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	schema := Schema{Name: name}
+	schema := Schema{Name: name, DB: d}
 	for rows.Next() {
 		var field, type_, null, key, extra string
-		var default_ sql.NullString
+		var default_ *string
 		if err := rows.Scan(&field, &type_, &null, &key, &default_, &extra); err != nil {
 			return nil, err
 		}
@@ -61,11 +61,10 @@ func (d Mysql) parseField(field, type_, null, key string) Field {
 		Name:     field,
 		Primary:  key == "PRI",
 		Nullable: null == "YES",
-		DbType:   type_,
-		GoType:   d.parseType(type_),
+		Type:     type_,
 	}
 }
-func (d Mysql) parseType(type_ string) reflect.Type {
+func (d Mysql) ParseType(type_ string) reflect.Type {
 	ss := strings.Split(type_, "(")
 	switch ss[0] {
 	case "tinyint", "int", "integer", "smallint", "mediumint", "bigint":
