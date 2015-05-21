@@ -7,7 +7,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -75,12 +74,8 @@ func (d Mysql) ParseType(type_ string) reflect.Type {
 		return reflect.TypeOf(float32(0))
 	case "double":
 		return reflect.TypeOf(float64(0))
-	case "datetime", "timestamp", "time":
-		return reflect.TypeOf(time.Time{})
-	case "date":
+	case "datetime", "timestamp", "date", "time", "year":
 		return reflect.TypeOf("")
-	case "year":
-		return reflect.TypeOf(int(0))
 	case "char", "varchar", "text", "tinytext":
 		return reflect.TypeOf("")
 	}
