@@ -34,11 +34,13 @@ func (s *Schema) Select(w io.Writer) {
 
 func (s *Schema) Scan(w io.Writer) {
 	fp(w, "var v %s\n", s.StructName())
-	fp(w, "rows.Scan(\n")
+	fp(w, "if err := rows.Scan(\n")
 	for _, f := range s.Fields {
 		fp(w, "    &v.%s,\n", upperCamel(f.Name))
 	}
-	fp(w, ")\n")
+	fp(w, "); err != nil {\n")
+	fp(w, "    return err\n")
+	fp(w, "}\n")
 }
 
 func (fs Fields) Select(w io.Writer) {
