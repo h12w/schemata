@@ -16,16 +16,17 @@ func (s *Schema) JSON(w io.Writer) {
 	w.Write(buf)
 }
 
-func (s *Schema) Struct(w io.Writer, name string) {
+func (s *Schema) Struct(w io.Writer, name string, db DB) {
 	fp(w, "type %s struct {\n", name)
 	for i := range s.Fields {
-		s.Fields[i].Struct(w, s.DB)
+		s.Fields[i].Struct(w, db)
 	}
 	fp(w, "}\n")
 }
 
 func (f *Field) Struct(w io.Writer, db DB) {
-	fp(w, "    %-25s *%-10s    `json:\"%s,omitempty\"`\n", upperCamel(f.Name), f.GoType(db).String(), f.Name)
+	goType := GoType{db.ParseType(f.Type)}
+	fp(w, "    %-25s *%-10s    `json:\"%s,omitempty\"`\n", upperCamel(f.Name), goType.String(), f.Name)
 }
 
 func (s *Schema) Select(w io.Writer) {

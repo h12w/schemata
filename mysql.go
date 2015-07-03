@@ -11,12 +11,12 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type Mysql struct {
+type MySQL struct {
 	DB           *sql.DB
 	ForceFloat32 bool
 }
 
-func (d Mysql) Schema(source string) (*Schema, error) {
+func (d MySQL) Schema(source string) (*Schema, error) {
 	if isSelectStmt(source) {
 		return d.schemaFromSelect(source)
 	}
@@ -26,7 +26,7 @@ func isSelectStmt(source string) bool {
 	return strings.ToUpper(strings.Fields(source)[0]) == "SELECT"
 }
 
-func (d Mysql) schemaFromSelect(stmt string) (*Schema, error) {
+func (d MySQL) schemaFromSelect(stmt string) (*Schema, error) {
 	view := "view_" + strconv.Itoa(rand.Int())
 	createStmt := fmt.Sprintf("CREATE VIEW %s AS %s", view, stmt)
 	if _, err := d.DB.Exec(createStmt); err != nil {
@@ -36,12 +36,12 @@ func (d Mysql) schemaFromSelect(stmt string) (*Schema, error) {
 	return d.schema(view)
 }
 
-func (d Mysql) schema(table string) (*Schema, error) {
+func (d MySQL) schema(table string) (*Schema, error) {
 	rows, err := d.DB.Query(fmt.Sprintf("SHOW COLUMNS FROM %s", table))
 	if err != nil {
 		return nil, err
 	}
-	schema := Schema{Name: table, DB: d}
+	schema := Schema{Name: table}
 	for rows.Next() {
 		var field, type_, null, key, extra string
 		var default_ *string
@@ -56,7 +56,7 @@ func (d Mysql) schema(table string) (*Schema, error) {
 	return &schema, nil
 }
 
-func (d Mysql) parseField(field, type_, null, key string) Field {
+func (d MySQL) parseField(field, type_, null, key string) Field {
 	return Field{
 		Name:     field,
 		Primary:  key == "PRI",
@@ -64,7 +64,7 @@ func (d Mysql) parseField(field, type_, null, key string) Field {
 		Type:     type_,
 	}
 }
-func (d Mysql) ParseType(type_ string) reflect.Type {
+func (d MySQL) ParseType(type_ string) reflect.Type {
 	ss := strings.Split(type_, "(")
 	switch ss[0] {
 	case "tinyint", "int", "integer", "smallint", "mediumint", "bigint":

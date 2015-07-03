@@ -1,6 +1,7 @@
 package schemata
 
 import (
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"time"
@@ -11,16 +12,15 @@ type DB interface {
 }
 
 type Schema struct {
-	Name   string
-	Fields Fields
-	DB     DB
+	Name   string `json:"name"`
+	Fields Fields `json:"fields"`
 }
 
 type Field struct {
-	Name     string
-	Primary  bool
-	Nullable bool
-	Type     string
+	Name     string `json:"name"`
+	Primary  bool   `json:"primary,omitempty"`
+	Nullable bool   `json:"nullable,omitemtpy"`
+	Type     string `json:"type"`
 }
 
 type Fields []Field
@@ -54,6 +54,7 @@ func (t *GoType) UnmarshalText(text []byte) error {
 	return nil
 }
 
-func (f *Field) GoType(db DB) GoType {
-	return GoType{db.ParseType(f.Type)}
+func (s *Schema) String() string {
+	buf, _ := json.MarshalIndent(s, "", "\t")
+	return string(buf)
 }
