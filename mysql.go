@@ -12,35 +12,36 @@ import (
 )
 
 type Mysql struct {
-	db *sql.DB
+	DB           *sql.DB
+	ForceFloat32 bool
 }
 
-func (d Mysql) Schema(name, source string) (*Schema, error) {
+func (d Mysql) Schema(source string) (*Schema, error) {
 	if isSelectStmt(source) {
-		return d.schemaFromSelect(name, source)
+		return d.schemaFromSelect(source)
 	}
-	return d.schema(name, source)
+	return d.schema(source)
 }
 func isSelectStmt(source string) bool {
 	return strings.ToUpper(strings.Fields(source)[0]) == "SELECT"
 }
 
-func (d Mysql) schemaFromSelect(name, stmt string) (*Schema, error) {
+func (d Mysql) schemaFromSelect(stmt string) (*Schema, error) {
 	view := "view_" + strconv.Itoa(rand.Int())
 	createStmt := fmt.Sprintf("CREATE VIEW %s AS %s", view, stmt)
-	if _, err := d.db.Exec(createStmt); err != nil {
+	if _, err := d.DB.Exec(createStmt); err != nil {
 		return nil, err
 	}
-	defer d.db.Exec(fmt.Sprintf("DROP VIEW %s", view))
-	return d.schema(name, view)
+	defer d.DB.Exec(fmt.Sprintf("DROP VIEW %s", view))
+	return d.schema(view)
 }
 
-func (d Mysql) schema(name, table string) (*Schema, error) {
-	rows, err := d.db.Query(fmt.Sprintf("SHOW COLUMNS FROM %s", table))
+func (d Mysql) schema(table string) (*Schema, error) {
+	rows, err := d.DB.Query(fmt.Sprintf("SHOW COLUMNS FROM %s", table))
 	if err != nil {
 		return nil, err
 	}
-	schema := Schema{Name: name, DB: d}
+	schema := Schema{Name: table, DB: d}
 	for rows.Next() {
 		var field, type_, null, key, extra string
 		var default_ *string
@@ -73,6 +74,9 @@ func (d Mysql) ParseType(type_ string) reflect.Type {
 	case "decimal", "float":
 		return reflect.TypeOf(float32(0))
 	case "double":
+		if d.ForceFloat32 {
+			return reflect.TypeOf(float32(0))
+		}
 		return reflect.TypeOf(float64(0))
 	case "datetime", "timestamp", "date", "time", "year":
 		return reflect.TypeOf("")

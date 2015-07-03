@@ -16,8 +16,8 @@ func (s *Schema) JSON(w io.Writer) {
 	w.Write(buf)
 }
 
-func (s *Schema) Struct(w io.Writer) {
-	fp(w, "type %s struct {\n", s.StructName())
+func (s *Schema) Struct(w io.Writer, name string) {
+	fp(w, "type %s struct {\n", name)
 	for i := range s.Fields {
 		s.Fields[i].Struct(w, s.DB)
 	}
@@ -32,14 +32,14 @@ func (s *Schema) Select(w io.Writer) {
 	s.Fields.Select(w)
 }
 
-func (s *Schema) Scan(w io.Writer) {
-	fp(w, "var v %s\n", s.StructName())
+func (s *Schema) Scan(w io.Writer, name string) {
+	fp(w, "var v %s\n", name)
 	fp(w, "if err := rows.Scan(\n")
 	for _, f := range s.Fields {
 		fp(w, "    &v.%s,\n", upperCamel(f.Name))
 	}
 	fp(w, "); err != nil {\n")
-	fp(w, "    return err\n")
+	fp(w, "    return i, err\n")
 	fp(w, "}\n")
 }
 
