@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 )
 
@@ -16,17 +17,24 @@ func (s *Schema) JSON(w io.Writer) {
 	w.Write(buf)
 }
 
-func (s *Schema) Struct(w io.Writer, name string, db DB) {
+func (s *Schema) Struct(w io.Writer, name string) {
 	fp(w, "type %s struct {\n", name)
 	for i := range s.Fields {
-		s.Fields[i].Struct(w, db)
+		s.Fields[i].Struct(w, s.DB)
 	}
 	fp(w, "}\n")
 }
 
-func (f *Field) Struct(w io.Writer, db DB) {
-	goType := GoType{db.ParseType(f.Type)}
+func (f *Field) Struct(w io.Writer, db string) {
+	goType := GoType{parseType(db, f.Type)}
 	fp(w, "    %-25s *%-10s    `json:\"%s,omitempty\"`\n", upperCamel(f.Name), goType.String(), f.Name)
+}
+func parseType(db string, t string) reflect.Type {
+	switch db {
+	case "mysql":
+		return ParseMySQLType(t)
+	}
+	return nil
 }
 
 func (s *Schema) Select(w io.Writer) {

@@ -3,6 +3,7 @@ package schemata
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"time"
 )
@@ -12,6 +13,7 @@ type DB interface {
 }
 
 type Schema struct {
+	DB     string `json:"db"`
 	Name   string `json:"name"`
 	Fields Fields `json:"fields"`
 }
@@ -57,4 +59,16 @@ func (t *GoType) UnmarshalText(text []byte) error {
 func (s *Schema) String() string {
 	buf, _ := json.MarshalIndent(s, "", "\t")
 	return string(buf)
+}
+
+func LoadSchema(file string) (*Schema, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return nil, err
+	}
+	var s Schema
+	if err := json.NewDecoder(f).Decode(&s); err != nil {
+		return nil, err
+	}
+	return &s, nil
 }

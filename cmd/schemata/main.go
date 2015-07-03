@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	"h12.me/schemata"
 
@@ -13,14 +14,15 @@ import (
 func main() {
 	usage := `Schemata
 Usage:
-  schemata extract <db> <conn_str> <table>
-  schemata generate <schema_json>
+  schemata extract <db> <conn-str> <table>
+  schemata generate struct <struct-name> <schema-json>
+  schemata generate select <schema-json>
 
 `
 
 	arg, _ := docopt.Parse(usage, nil, true, "Schemata", false)
 	if arg["extract"].(bool) {
-		db, conn, table := arg["<db>"].(string), arg["<conn_str>"].(string), arg["<table>"].(string)
+		db, conn, table := arg["<db>"].(string), arg["<conn-str>"].(string), arg["<table>"].(string)
 		x, err := sql.Open(db, conn)
 		if err != nil {
 			log.Fatal(err)
@@ -32,6 +34,16 @@ Usage:
 			fmt.Println(s)
 		default:
 			fmt.Println(arg)
+		}
+	} else if arg["generate"].(bool) {
+		file := arg["<schema-json>"].(string)
+		if arg["struct"].(bool) {
+			structName := arg["<struct-name>"].(string)
+			s, err := schemata.LoadSchema(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			s.Struct(os.Stdout, structName)
 		}
 	}
 }
