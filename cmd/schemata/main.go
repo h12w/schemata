@@ -17,6 +17,7 @@ Usage:
   schemata extract <db> <conn-str> <table>
   schemata generate struct <struct-name> <schema-json>
   schemata generate select <schema-json>
+  schemata generate scan <struct-name> <schema-json>
 
 `
 
@@ -44,6 +45,19 @@ Usage:
 				log.Fatal(err)
 			}
 			s.Struct(os.Stdout, structName)
+		} else if arg["select"].(bool) {
+			s, err := schemata.LoadSchema(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			s.Select(os.Stdout)
+			s.From(os.Stdout)
+		} else if arg["scan"].(bool) {
+			s, err := schemata.LoadSchema(file)
+			if err != nil {
+				log.Fatal(err)
+			}
+			s.Scan(os.Stdout, arg["<struct-name>"].(string))
 		}
 	}
 }
