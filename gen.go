@@ -38,7 +38,12 @@ func parseType(db string, t string) reflect.Type {
 }
 
 func (s *Schema) Select(w io.Writer) {
+	if s.FromSelect {
+		fp(w, s.Name)
+		return
+	}
 	s.Fields.Select(w)
+	fp(w, "FROM\n    %s\n", s.Name)
 }
 
 func (s *Schema) Scan(w io.Writer, name string) {
@@ -61,10 +66,6 @@ func (fs Fields) Select(w io.Writer) {
 		fp(w, "    %s", f.Name)
 	}
 	fp(w, "\n")
-}
-
-func (s *Schema) From(w io.Writer) {
-	fp(w, "FROM\n    %s\n", s.Name)
 }
 
 func upperCamel(s string) string {

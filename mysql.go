@@ -32,7 +32,13 @@ func (d MySQL) schemaFromSelect(stmt string) (*Schema, error) {
 		return nil, err
 	}
 	defer d.DB.Exec(fmt.Sprintf("DROP VIEW %s", view))
-	return d.schema(view)
+	s, err := d.schema(view)
+	if err != nil {
+		return nil, err
+	}
+	s.Name = stmt
+	s.FromSelect = true
+	return s, nil
 }
 
 func (d MySQL) schema(table string) (*Schema, error) {

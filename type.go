@@ -13,9 +13,10 @@ type DB interface {
 }
 
 type Schema struct {
-	DB     string `json:"db"`
-	Name   string `json:"name"`
-	Fields Fields `json:"fields"`
+	DB         string `json:"db"`
+	Name       string `json:"name"`
+	Fields     Fields `json:"fields"`
+	FromSelect bool   `json:"from_select"`
 }
 
 type Field struct {
