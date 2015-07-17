@@ -27,7 +27,7 @@ func isSelectStmt(source string) bool {
 
 func (d MySQL) schemaFromSelect(stmt string) (*Schema, error) {
 	view := "view_" + strconv.Itoa(rand.Int())
-	createStmt := fmt.Sprintf("CREATE VIEW %s AS %s", view, stmt)
+	createStmt := fmt.Sprintf("CREATE VIEW %s AS %s", view, fmt.Sprintf(stmt, "TRUE"))
 	if _, err := d.DB.Exec(createStmt); err != nil {
 		return nil, err
 	}

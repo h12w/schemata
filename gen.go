@@ -39,11 +39,12 @@ func parseType(db string, t string) reflect.Type {
 
 func (s *Schema) Select(w io.Writer) {
 	if s.FromSelect {
-		fp(w, s.Name)
+		fmt.Fprint(w, s.Name)
 		return
 	}
 	s.Fields.Select(w)
 	fp(w, "FROM\n    %s\n", s.Name)
+	fmt.Fprint(w, "WHERE\n    %s")
 }
 
 func (s *Schema) Scan(w io.Writer, name string) {
@@ -53,7 +54,7 @@ func (s *Schema) Scan(w io.Writer, name string) {
 		fp(w, "    &v.%s,\n", upperCamel(f.Name))
 	}
 	fp(w, "); err != nil {\n")
-	fp(w, "    return i, err\n")
+	fp(w, "    return err\n")
 	fp(w, "}\n")
 }
 
