@@ -8,22 +8,21 @@ import (
 	"strconv"
 	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-type MySQL struct {
+type SQLite struct {
 	DB *sql.DB
 }
 
-func (d MySQL) Schema(source string) (*Schema, error) {
+func (d SQLite) Schema(source string) (*Schema, error) {
 	if isSelectStmt(source) {
 		return d.schemaFromSelect(source)
 	}
 	return d.schema(source)
 }
 
-
-func (d MySQL) schemaFromSelect(stmt string) (*Schema, error) {
+func (d SQLite) schemaFromSelect(stmt string) (*Schema, error) {
 	view := "view_" + strconv.Itoa(rand.Int())
 	createStmt := fmt.Sprintf("CREATE VIEW %s AS %s", view, fmt.Sprintf(stmt, "TRUE"))
 	if _, err := d.DB.Exec(createStmt); err != nil {
@@ -39,16 +38,17 @@ func (d MySQL) schemaFromSelect(stmt string) (*Schema, error) {
 	return s, nil
 }
 
-func (d MySQL) schema(table string) (*Schema, error) {
-	rows, err := d.DB.Query(fmt.Sprintf("SHOW COLUMNS FROM %s", table))
+func (d SQLite) schema(table string) (*Schema, error) {
+	rows, err := d.DB.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
 	if err != nil {
 		return nil, err
 	}
-	schema := Schema{Name: table, DB: "mysql"}
+	schema := Schema{Name: table, DB: "sqlite"}
 	for rows.Next() {
-		var field, type_, null, key, extra string
+		var i, null, key int
+		var field, type_ string
 		var default_ *string
-		if err := rows.Scan(&field, &type_, &null, &key, &default_, &extra); err != nil {
+		if err := rows.Scan(&i, &field, &type_, &null, &default_, &key); err != nil {
 			return nil, err
 		}
 		schema.Fields = append(schema.Fields, d.parseField(field, type_, null, key))
@@ -59,29 +59,27 @@ func (d MySQL) schema(table string) (*Schema, error) {
 	return &schema, nil
 }
 
-func (d MySQL) parseField(field, type_, null, key string) Field {
+func (d SQLite) parseField(field, type_ string, null, key int) Field {
 	return Field{
 		Name:     field,
-		Primary:  key == "PRI",
-		Nullable: null == "YES",
+		Primary:  key == 1,
+		Nullable: null == 1,
 		Type:     type_,
 	}
 }
-func ParseMySQLType(type_ string) reflect.Type {
+func ParseSQLiteType(type_ string) reflect.Type {
 	ss := strings.Split(type_, "(")
 	switch ss[0] {
-	case "tinyint", "int", "integer", "smallint", "mediumint", "bigint":
+	case "INTEGER":
 		return reflect.TypeOf(int(0))
-	case "boolean", "bool":
-		return reflect.TypeOf(bool(false))
-	case "decimal", "float":
-		return reflect.TypeOf(float32(0))
-	case "double":
+	case "REAL":
 		return reflect.TypeOf(float64(0))
-	case "datetime", "timestamp", "date", "time", "year":
+	case "DATETIME", "TIMESTAMP":
 		return reflect.TypeOf("")
-	case "char", "varchar", "text", "tinytext":
+	case "TEXT":
 		return reflect.TypeOf("")
+	case "BLOB":
+		return reflect.TypeOf([]byte{})
 	}
 	return nil
 }

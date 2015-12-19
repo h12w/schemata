@@ -33,6 +33,8 @@ func parseType(db string, t string) reflect.Type {
 	switch db {
 	case "mysql":
 		return ParseMySQLType(t)
+	case "sqlite":
+		return ParseSQLiteType(t)
 	}
 	return nil
 }
