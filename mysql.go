@@ -85,5 +85,5 @@ func ParseMySQLType(type_ string) reflect.Type {
 	case "char", "varchar", "text", "tinytext":
 		return reflect.TypeOf("")
 	}
-	return nil
+	panic("unknown type " + type_)
 }

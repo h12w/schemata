@@ -73,7 +73,7 @@ func (d SQLite) parseField(field, type_ string, null, key int) Field {
 func ParseSQLiteType(type_ string) reflect.Type {
 	ss := strings.Split(type_, "(")
 	switch ss[0] {
-	case "INTEGER":
+	case "INTEGER", "BOOLEAN":
 		return reflect.TypeOf(int(0))
 	case "REAL":
 		return reflect.TypeOf(float64(0))
@@ -84,5 +84,5 @@ func ParseSQLiteType(type_ string) reflect.Type {
 	case "BLOB":
 		return reflect.TypeOf([]byte{})
 	}
-	return nil
+	panic("unknown type " + type_)
 }
