@@ -6,6 +6,8 @@ import (
 	"io"
 	"reflect"
 	"strings"
+
+	"h12.me/gengo"
 )
 
 func (s *Schema) StructName() string {
@@ -17,17 +19,42 @@ func (s *Schema) JSON(w io.Writer) {
 	w.Write(buf)
 }
 
-func (s *Schema) Struct(w io.Writer, name string) {
-	fp(w, "type %s struct {\n", name)
-	for i := range s.Fields {
-		s.Fields[i].Struct(w, s.DB)
+func (s *Schema) Struct(w io.Writer, name string) error {
+	decl := &gengo.TypeDecl{
+		Name: name,
+		Type: gengo.Type{
+			Kind:   gengo.StructKind,
+			Fields: s.fields(),
+		},
 	}
-	fp(w, "}\n")
+	return decl.Marshal(w)
 }
 
-func (f *Field) Struct(w io.Writer, db string) {
+func (s *Schema) fields() (fields []*gengo.Field) {
+	for i := range s.Fields {
+		fields = append(fields, s.Fields[i].goField(s.DB))
+	}
+	return
+}
+
+func (f *Field) goField(db string) *gengo.Field {
 	goType := GoType{parseType(db, f.Type)}
-	fp(w, "    %-25s *%-10s    `json:\"%s,omitempty\"`\n", upperCamel(f.Name), goType.String(), f.Name)
+	return &gengo.Field{
+		Name: upperCamel(f.Name),
+		Type: gengo.Type{
+			Kind:  gengo.IdentKind,
+			Ident: goType.String(),
+		},
+		Tag: &gengo.Tag{
+			Parts: []*gengo.TagPart{
+				{
+					Encoding:  "json",
+					Name:      f.Name,
+					OmitEmpty: true,
+				},
+			},
+		},
+	}
 }
 func parseType(db string, t string) reflect.Type {
 	switch db {
