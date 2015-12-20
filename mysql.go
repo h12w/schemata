@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	"h12.me/gengo"
 )
 
 type MySQL struct {
@@ -21,7 +22,6 @@ func (d MySQL) Schema(source string) (*Schema, error) {
 	}
 	return d.schema(source)
 }
-
 
 func (d MySQL) schemaFromSelect(stmt string) (*Schema, error) {
 	view := "view_" + strconv.Itoa(rand.Int())
@@ -44,7 +44,7 @@ func (d MySQL) schema(table string) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	schema := Schema{Name: table, DB: "mysql"}
+	schema := Schema{Name: table, DB: "mysql", GoName: gengo.GoUpperName(table)}
 	for rows.Next() {
 		var field, type_, null, key, extra string
 		var default_ *string
@@ -62,9 +62,11 @@ func (d MySQL) schema(table string) (*Schema, error) {
 func (d MySQL) parseField(field, type_, null, key string) Field {
 	return Field{
 		Name:     field,
+		GoName:   gengo.GoUpperName(field),
 		Primary:  key == "PRI",
 		Nullable: null == "YES",
 		Type:     type_,
+		GoType:   ParseMySQLType(type_),
 	}
 }
 func ParseMySQLType(type_ string) reflect.Type {

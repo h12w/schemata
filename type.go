@@ -13,17 +13,20 @@ type DB interface {
 }
 
 type Schema struct {
-	DB         string `json:"db"`
 	Name       string `json:"name"`
+	GoName     string `json:"go_name"`
 	Fields     Fields `json:"fields"`
 	FromSelect bool   `json:"from_select"`
+	DB         string `json:"db"`
 }
 
 type Field struct {
-	Name     string `json:"name"`
-	Primary  bool   `json:"primary,omitempty"`
-	Nullable bool   `json:"nullable,omitemtpy"`
-	Type     string `json:"type"`
+	Name     string       `json:"name"`
+	GoName   string       `json:"go_name"`
+	Primary  bool         `json:"primary,omitempty"`
+	Nullable bool         `json:"nullable,omitemtpy"`
+	Type     string       `json:"type"`
+	GoType   reflect.Type `json:"go_type"`
 }
 
 type Fields []Field
