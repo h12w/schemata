@@ -66,7 +66,7 @@ func (s *Schema) Scan(w io.Writer, name string) {
 	fp(w, "var v %s\n", name)
 	fp(w, "if err := rows.Scan(\n")
 	for _, f := range s.Fields {
-		fp(w, "    &v.%s,\n", gengo.GoUpperName(f.Name))
+		fp(w, "    &v.%s,\n", gengo.SnakeToUpperCamel(f.Name))
 	}
 	fp(w, "); err != nil {\n")
 	fp(w, "    return err\n")

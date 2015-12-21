@@ -44,7 +44,7 @@ func (d SQLite) schema(table string) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	schema := Schema{Name: table, DB: "sqlite", GoName: gengo.GoUpperName(table)}
+	schema := Schema{Name: table, DB: "sqlite", GoName: gengo.SnakeToUpperCamel(table)}
 	for rows.Next() {
 		var i, null, key int
 		var field, type_ string
@@ -63,7 +63,7 @@ func (d SQLite) schema(table string) (*Schema, error) {
 func (d SQLite) parseField(field, type_ string, null, key int) Field {
 	return Field{
 		Name:     field,
-		GoName:   gengo.GoUpperName(field),
+		GoName:   gengo.SnakeToUpperCamel(field),
 		Primary:  key == 1,
 		Nullable: null == 1,
 		Type:     type_,

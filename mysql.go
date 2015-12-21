@@ -44,7 +44,7 @@ func (d MySQL) schema(table string) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	schema := Schema{Name: table, DB: "mysql", GoName: gengo.GoUpperName(table)}
+	schema := Schema{Name: table, DB: "mysql", GoName: gengo.SnakeToUpperCamel(table)}
 	for rows.Next() {
 		var field, type_, null, key, extra string
 		var default_ *string
@@ -62,7 +62,7 @@ func (d MySQL) schema(table string) (*Schema, error) {
 func (d MySQL) parseField(field, type_, null, key string) Field {
 	return Field{
 		Name:     field,
-		GoName:   gengo.GoUpperName(field),
+		GoName:   gengo.SnakeToUpperCamel(field),
 		Primary:  key == "PRI",
 		Nullable: null == "YES",
 		Type:     type_,
