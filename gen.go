@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"h12.me/gengo"
 )
@@ -21,6 +22,12 @@ func (s *Schema) Struct(tags ...string) *gengo.TypeDecl {
 			Fields: s.goFields(tags),
 		},
 	}
+}
+
+func (s *Schema) InsertQuery(w io.Writer) {
+	fpn(w, "INSERT INTO %s (", s.Name)
+	s.Fields.ToList(w)
+	fpn(w, "\n) VALUES (%s?)", strings.Repeat("?,", len(s.Fields)-1))
 }
 
 func (s *Schema) goFields(tags []string) (fields []*gengo.Field) {
@@ -58,32 +65,41 @@ func (s *Schema) Select(w io.Writer) {
 		return
 	}
 	s.Fields.Select(w)
-	fp(w, "FROM\n    %s\n", s.Name)
+	fpn(w, "FROM\n    %s", s.Name)
 	w.Write([]byte("WHERE\n    %s"))
 }
 
 func (s *Schema) Scan(w io.Writer, name string) {
-	fp(w, "var v %s\n", name)
-	fp(w, "if err := rows.Scan(\n")
+	fpn(w, "var v %s", name)
+	fpn(w, "if err := rows.Scan(")
 	for _, f := range s.Fields {
-		fp(w, "    &v.%s,\n", gengo.SnakeToUpperCamel(f.Name))
+		fpn(w, "    &v.%s,", gengo.SnakeToUpperCamel(f.Name))
 	}
-	fp(w, "); err != nil {\n")
-	fp(w, "    return err\n")
-	fp(w, "}\n")
+	fpn(w, "); err != nil {")
+	fpn(w, "    return err")
+	fpn(w, "}")
 }
 
 func (fs Fields) Select(w io.Writer) {
-	fp(w, "SELECT\n")
+	fpn(w, "SELECT")
+	fs.ToList(w)
+	fpn(w, "")
+}
+
+func (fs Fields) ToList(w io.Writer) {
 	for i, f := range fs {
 		if i > 0 {
-			fp(w, ",\n")
+			fpn(w, ",")
 		}
 		fp(w, "    %s", f.Name)
 	}
-	fp(w, "\n")
 }
 
 func fp(w io.Writer, format string, v ...interface{}) {
 	fmt.Fprintf(w, format, v...)
+}
+
+func fpn(w io.Writer, format string, v ...interface{}) {
+	fmt.Fprintf(w, format, v...)
+	fmt.Fprintln(w)
 }
