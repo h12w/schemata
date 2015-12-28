@@ -30,6 +30,17 @@ func (s *Schema) InsertQuery(w io.Writer) {
 	fpn(w, "\n) VALUES (%s?)", strings.Repeat("?,", len(s.Fields)-1))
 }
 
+func (s *Schema) InsertIgnoreQuery(w io.Writer) {
+	switch s.DB {
+	case "mysql":
+		fpn(w, "INSERT IGNORE INTO %s (", s.Name)
+	case "sqlite":
+		fpn(w, "INSERT OR IGNORE INTO %s (", s.Name)
+	}
+	s.Fields.ToList(w)
+	fpn(w, "\n) VALUES (%s?)", strings.Repeat("?,", len(s.Fields)-1))
+}
+
 func (s *Schema) goFields(tags []string) (fields []*gengo.Field) {
 	for i := range s.Fields {
 		fields = append(fields, s.Fields[i].goField(tags))
