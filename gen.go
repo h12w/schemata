@@ -56,7 +56,7 @@ func (f *Field) goField(tags []string) *gengo.Field {
 			tag[i] = &gengo.TagPart{
 				Encoding:  tags[i],
 				Name:      f.Name,
-				OmitEmpty: true,
+				OmitEmpty: false,
 			}
 		}
 	}
