@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"h12.me/schemata"
+	"h12.io/schemata"
 
 	"github.com/docopt/docopt-go"
 )

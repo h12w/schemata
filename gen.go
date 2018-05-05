@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"h12.me/gengo"
+	"h12.io/gengo"
 )
 
 func (s *Schema) JSON(w io.Writer) {

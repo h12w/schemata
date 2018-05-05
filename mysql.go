@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
-	"h12.me/gengo"
+	"h12.io/gengo"
 )
 
 type MySQL struct {

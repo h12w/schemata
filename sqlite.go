@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
-	"h12.me/gengo"
+	"h12.io/gengo"
 )
 
 type SQLite struct {
